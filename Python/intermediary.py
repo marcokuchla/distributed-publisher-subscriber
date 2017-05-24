@@ -26,6 +26,10 @@ class Intermediary(object):
         self._client = None
 
     @property
+    def name(self):
+        return self._name
+
+    @property
     def client(self):
         return self._client
 
@@ -42,12 +46,11 @@ class Intermediary(object):
     def subscription(self, node, event):
         if self._client == node:
             self._subscribers[node] = event
-            print("'{}' subscribed client '{}' for event '{}'".format(self, node, event))
+            print("'{}' subscribed client '{}' for event '{}'".format(self, node.name, event))
         else:
             self._routing[node] = event
-            print("'{}' registered route '{}' for event '{}'".format(self, node, event))
-        [n.subscription(self, event) for n in self._neighbours - {node} if isinstance(n, Intermediary)]
-
+            print("'{}' registered route '{}' for event '{}'".format(self, node.name, event))
+        [n.subscription(self, event) for n in self._neighbours if n.name != node.name]
 
     def publish(self, node, event):
         matchlist = [n for (n, e) in self._subscribers.items() if e == event]
@@ -60,11 +63,20 @@ class Intermediary(object):
         node.notify(event)
 
     def forwarding(self, node, event):
-        print("'{}' forwarding to '{}' a published event '{}'".format(self, node, event))
+        print("'{}' forwarding to '{}' a published event '{}'".format(self, node.name, event))
         node.publish(self, event)
 
     def __str__(self):
         return self._name
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __ne__(self, other):
+        return not(self == other)
+
+    def __hash__(self):
+        return hash(self.name)
 
 def main():
     i1 = Intermediary('I1')
