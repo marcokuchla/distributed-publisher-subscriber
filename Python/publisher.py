@@ -1,3 +1,6 @@
+import sys
+import Pyro4
+
 class Publisher(object):
     def __init__(self, name, event):
         super(Publisher, self).__init__()

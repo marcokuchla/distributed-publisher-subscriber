@@ -1,7 +1,16 @@
+import sys
+import Pyro4
+
+@Pyro4.expose
+@Pyro4.behavior(instance_mode='single')
 class Subscriber(object):
     def __init__(self, name):
         super(Subscriber, self).__init__()
-        self.name = name
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
 
     def notify(self, event):
         print("'{}' received event '{}'".format(self, event))
@@ -10,7 +19,7 @@ class Subscriber(object):
         return self.name
 
     def __eq__(self, other):
-        return self.name == other.name
+        return other and self.name == other.name
 
     def __ne__(self, other):
         return not (self == other)

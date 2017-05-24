@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
+import json
+import sys
 import Pyro4
 import subscriber
 import publisher
 
 def subscriber_dict_to_class(classname, d):
+    print('deserializing {}'.format(d))
     return subscriber.Subscriber(d['name'])
 
 def publisher_dict_to_class(classname, d):
     p = publisher.Publisher(d['name'], d['event'])
     p.intermediary = d['intermediary']
-    return
+    return p
 
 Pyro4.util.SerializerBase.register_dict_to_class('subscriber.Subscriber', subscriber_dict_to_class)
 Pyro4.util.SerializerBase.register_dict_to_class('publisher.Publisher', publisher_dict_to_class)
@@ -70,7 +73,7 @@ class Intermediary(object):
         return self._name
 
     def __eq__(self, other):
-        return self.name == other.name
+        return other and self.name == other.name
 
     def __ne__(self, other):
         return not(self == other)
@@ -79,9 +82,22 @@ class Intermediary(object):
         return hash(self.name)
 
 def main():
+    sys.excepthook = Pyro4.util.excepthook
     i1 = Intermediary('I1')
     i2 = Intermediary('I2')
     i3 = Intermediary('I3')
+    i1.add_neighbours([i2, i3])
+    i2.add_neighbours([i1])
+    i3.add_neighbours([i1])
+    with Pyro4.locateNS() as ns:
+        s1 = Pyro4.Proxy('PYRONAME:subscriber1')
+        s2 = Pyro4.Proxy('PYRONAME:subscriber2')
+    i2.client = s1
+    i3.client = s2
+    i2.subscription(s1, 'X')
+    print
+    i3.subscription(s2, 'Y')
+    print
     with Pyro4.Daemon() as daemon:
         i1_uri = daemon.register(i1)
         i2_uri = daemon.register(i2)
