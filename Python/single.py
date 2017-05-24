@@ -20,9 +20,9 @@ class Intermediary(object):
 
 
     def publish(self, node, event):
-        matchlist = [n for (n, e) in self.subscribers.iteritems() if e == event]
+        matchlist = [n for (n, e) in self.subscribers.items() if e == event]
         [self.notifying(n, event) for n in matchlist]
-        forwardlist = [n for (n, e) in self.routing.iteritems() if e == event]
+        forwardlist = [n for (n, e) in self.routing.items() if e == event]
         [self.forwarding(n, event) for n in forwardlist if n != node]
 
     def notifying(self, node, event):
@@ -78,7 +78,7 @@ def main():
     i1.neighbours.add(i3)
     i1.neighbours.add(i3)
     i2.neighbours.add(i1)
-    i2.neighbours.add(i1)
+    i2.neighbours.add(s1)
     i3.neighbours.add(p2)
     i3.neighbours.add(i1)
     i3.neighbours.add(s2)
